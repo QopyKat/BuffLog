@@ -1,0 +1,9 @@
+## Interface: 11303
+## Title: BuffLog
+## Notes: Write Buffs of your Party/Raid into a file.
+## Version: 0.1
+## DefaultState: enabled
+## Author: Qopy-Mograine
+## SavedVariables: BuffLog_SavedBuffs
+
+BuffLog.lua
