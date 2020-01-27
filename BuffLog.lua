@@ -1,6 +1,6 @@
 -- NAMESPACE
 BuffLog = {}
-ADDON_NAME = "BuffLog"
+BuffLog.ADDON_NAME = "BuffLog"
 
 -- COMMAND
 SLASH_BUFFLOG1 = "/bufflog"
@@ -19,15 +19,15 @@ BuffLogFrame:SetScript("OnEvent", function(self, event, arg1, ...) BuffLogFrame:
 function BuffLog:logBuffs(msg)
     local buffs = BuffLog:getBuffs()
     BuffLog:saveBuffs(buffs)
-    print("done")
+    print("Buffs Logged")
 end
 
 -- EVENT HANDLER
 function BuffLogFrame:onEvent(self, event, arg1, ...)
     if event == "ADDON_LOADED" then
-        if arg1 == ADDON_NAME then
+        if arg1 == BuffLog.ADDON_NAME then
             local colorHex = "2979ff"
-            print("|cff"..colorHex..ADDON_NAME.." loaded - /bufflog")
+            print("|cff"..colorHex..BuffLog.ADDON_NAME.." loaded - /bufflog")
         end
     end
 end
@@ -35,15 +35,12 @@ end
 -- BUFF LOG FUNCTIONS
 function BuffLog:getBuffs()
     if UnitInRaid("player") then
-        print('raid')
         return BuffLog:getRaidBuffs()
 
     elseif UnitInParty("player") then
-        print('party')
         return BuffLog:getPartyBuffs()
         
     else
-        print('solo')
         return BuffLog:getPlayerbuffs()
     end
 end
@@ -73,15 +70,10 @@ function BuffLog:getRaidBuffs()
 end
 
 function BuffLog:getUnitBuffs(unit)
-    print("Player: " .. unit)
     local buffs = {}
     for buffIndex = 1, 40 do
-        name, _, _, _, _, _, _, _, _, spellId = UnitBuff(unit, buffIndex)
-        -- if spellId == nil then
-        --     break
-        -- end
+        _, _, _, _, _, _, _, _, _, spellId = UnitBuff(unit, buffIndex)
         if spellId ~= nil then
-            print(name .. ": " .. spellId)
             buffs[#buffs + 1] = spellId
         end
     end
