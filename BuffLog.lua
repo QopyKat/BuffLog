@@ -1,6 +1,7 @@
--- NAMESPACE
 local _, BuffLog = ...
 
+-- NAMESPACE
+BuffLog = {}
 BuffLog.ADDON_NAME = "BuffLog"
 BuffLog.buffs = {}
 BuffLog.lastTime = time()
@@ -17,6 +18,7 @@ local BuffLogFrame = CreateFrame("Frame") -- Root frame
 -- REGISTER EVENTS
 BuffLogFrame:RegisterEvent("ADDON_LOADED")
 BuffLogFrame:RegisterEvent("ENCOUNTER_START")
+BuffLogFrame:RegisterEvent("READY_CHECK")
 BuffLogFrame:RegisterEvent("TAXIMAP_OPENED")
 
 -- REGISTER EVENT LISTENERS
@@ -28,7 +30,6 @@ end);
 function BuffLog:logBuffs(msg)
     local buffs = BuffLog:getBuffs()
     BuffLog:saveBuffs(buffs)
-    print("Buffs Logged")
 end
 
 -- EVENT HANDLER
@@ -40,16 +41,17 @@ function BuffLogFrame:onEvent(self, event, arg1, ...)
         end
     end
 
-    -- AUTOMATICALLY COLLECT BUFFS WHEN ENCOUNTER STARTS
-    if event == "ENCOUNTER_START" then
-        BuffLog:getBuffs()
+    -- AUTOMATICALLY COLLECT BUFFS WHEN A READY CHECK IS PERFORMED
+    if event == "ENCOUNTER_START" or event == "READY_CHECK" then
+        BuffLog:logBuffs(msg)
     end
 
     -- CLEAR SAVED VARIABLES WHENVER TALKING TO FLIGHTPATH
-    -- AND THE VARIABLES ARE MORE THAN 5 HOURS OLD
+    -- AND THE VARIABLES ARE MORE THAN 12 HOURS OLD
+    --(YOU WONT DO THIS IN A RAID ENVIRONMENT ANYWAY SO NO WAY TO ACCIDENTALLY DELETE THEM)
     if event == "TAXIMAP_OPENED" then
         if not BuffLog_LastLog then return end
-        if time() - BuffLog_LastLog > 18000 then
+        if time() - BuffLog_LastLog > 43200 then
             BuffLog_SavedBuffs = {}
         end
     end
@@ -108,4 +110,5 @@ function BuffLog:saveBuffs(buffs)
     BuffLog_SavedBuffs = BuffLog_SavedBuffs or {}
     BuffLog_SavedBuffs[key] = buffs
     BuffLog_LastLog = time()
+    print("Buffs Logged")
 end
