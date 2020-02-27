@@ -4,6 +4,6 @@
 ## Version: 0.1
 ## DefaultState: enabled
 ## Author: Qopy-Mograine
-## SavedVariables: BuffLog_SavedBuffs
+## SavedVariables: BuffLog_SavedBuffs, BuffLog_LastLog
 
 BuffLog.lua
