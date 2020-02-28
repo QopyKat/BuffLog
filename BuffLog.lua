@@ -1,10 +1,7 @@
-local _, BuffLog = ...
-
 -- NAMESPACE
-BuffLog = {}
+local _, BuffLog = ...
 BuffLog.ADDON_NAME = "BuffLog"
-BuffLog.buffs = {}
-BuffLog.lastTime = time()
+BuffLog.lastTime = 0
 
 -- COMMAND
 SLASH_BUFFLOG1 = "/bufflog"
@@ -30,6 +27,7 @@ end);
 function BuffLog:logBuffs(msg)
     local buffs = BuffLog:getBuffs()
     BuffLog:saveBuffs(buffs)
+    print("Buffs Logged")
 end
 
 -- EVENT HANDLER
@@ -46,12 +44,11 @@ function BuffLogFrame:onEvent(self, event, arg1, ...)
         BuffLog:logBuffs(msg)
     end
 
-    -- CLEAR SAVED VARIABLES WHENVER TALKING TO FLIGHTPATH
-    -- AND THE VARIABLES ARE MORE THAN 12 HOURS OLD
-    --(YOU WONT DO THIS IN A RAID ENVIRONMENT ANYWAY SO NO WAY TO ACCIDENTALLY DELETE THEM)
+    -- CLEAR SAVED VARIABLES WHENEVER TALKING TO FLIGHTPATH
+    -- AND THE VARIABLES ARE MORE THAN 5 HOURS OLD
     if event == "TAXIMAP_OPENED" then
         if not BuffLog_LastLog then return end
-        if time() - BuffLog_LastLog > 43200 then
+        if time() - BuffLog_LastLog > 18000 then
             BuffLog_SavedBuffs = {}
         end
     end
@@ -71,38 +68,38 @@ function BuffLog:getBuffs()
 end
 
 function BuffLog:getPlayerbuffs()
-    wipe(BuffLog.buffs)
-    BuffLog.buffs[UnitGUID("player")] = BuffLog:getUnitBuffs("player")
-    return BuffLog.buffs
+  local buffs = {}
+  buffs[UnitGUID("player")] = BuffLog:getUnitBuffs("player")
+  return buffs
 end
 
 function BuffLog:getPartyBuffs()
-    local buffs = BuffLog:getPlayerbuffs()
-    for i = 1, GetNumGroupMembers() - 1 do
-        unit = "party" .. i
-        BuffLog.buffs[UnitGUID(unit)] = BuffLog:getUnitBuffs(unit)
-    end
-    return BuffLog.buffs
+  local buffs = BuffLog:getPlayerbuffs()
+  for i = 1, GetNumGroupMembers() - 1 do
+      unit = "party" .. i
+      buffs[UnitGUID(unit)] = BuffLog:getUnitBuffs(unit)
+  end
+  return buffs
 end
 
 function BuffLog:getRaidBuffs()
-    wipe(BuffLog.buffs)
-    for i = 1, GetNumGroupMembers() do
-        unit = "raid" .. i
-        BuffLog.buffs[UnitGUID(unit)] = BuffLog:getUnitBuffs(unit)
-    end
-    return BuffLog.buffs
+  local buffs = {}
+  for i = 1, GetNumGroupMembers() do
+      unit = "raid" .. i
+      buffs[UnitGUID(unit)] = BuffLog:getUnitBuffs(unit)
+  end
+  return buffs
 end
 
 function BuffLog:getUnitBuffs(unit)
-    wipe(BuffLog.buffs)
-    for buffIndex = 1, 40 do
-        _, _, _, _, _, _, _, _, _, spellId = UnitBuff(unit, buffIndex)
-        if spellId ~= nil then
-            BuffLog.buffs[#BuffLog.buffs + 1] = spellId
-        end
-    end
-    return BuffLog.buffs
+  local buffs = {}
+  for buffIndex = 1, 40 do
+      _, _, _, _, _, _, _, _, _, spellId = UnitBuff(unit, buffIndex)
+      if spellId ~= nil then
+          buffs[#buffs + 1] = spellId
+      end
+  end
+  return buffs
 end
 
 function BuffLog:saveBuffs(buffs)
@@ -110,5 +107,4 @@ function BuffLog:saveBuffs(buffs)
     BuffLog_SavedBuffs = BuffLog_SavedBuffs or {}
     BuffLog_SavedBuffs[key] = buffs
     BuffLog_LastLog = time()
-    print("Buffs Logged")
 end
