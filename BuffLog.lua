@@ -50,6 +50,7 @@ function BuffLogFrame:onEvent(self, event, arg1, ...)
         if not BuffLog_LastLog then return end
         if time() - BuffLog_LastLog > 18000 then
             BuffLog_SavedBuffs = {}
+            print("BuffLog SavedVariables cleared.")
         end
     end
 end
