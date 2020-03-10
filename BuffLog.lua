@@ -15,7 +15,6 @@ local BuffLogFrame = CreateFrame("Frame") -- Root frame
 -- REGISTER EVENTS
 BuffLogFrame:RegisterEvent("ADDON_LOADED")
 BuffLogFrame:RegisterEvent("UNIT_HEALTH")
-BuffLogFrame:RegisterEvent("UNIT_POWER")
 BuffLogFrame:RegisterEvent("TAXIMAP_OPENED")
 
 -- REGISTER EVENT LISTENERS
@@ -25,7 +24,7 @@ end);
 
 -- COMMAND HANDLER
 function BuffLog:slashCommands(msg)
-  command, ... = strsplit(" ", msg, 2)
+  local command, rest = strsplit(" ", msg, 2)
   if command == "clear" then
     BuffLog_SavedBuffs = {}
     print("BuffLog SavedVariables cleared.")
