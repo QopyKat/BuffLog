@@ -1,12 +1,12 @@
 -- NAMESPACE
 local _, BuffLog = ...
 BuffLog.ADDON_NAME = "BuffLog"
-BuffLog.lastTime = 0
+BuffLog.lastTimeLogged = 0
 
 -- COMMAND
 SLASH_BUFFLOG1 = "/bufflog"
 SlashCmdList["BUFFLOG"] = function(msg)
-    BuffLog:logBuffs(msg)
+    BuffLog:slashCommands(msg)
 end
 
 -- INTERFACE
@@ -14,8 +14,8 @@ local BuffLogFrame = CreateFrame("Frame") -- Root frame
 
 -- REGISTER EVENTS
 BuffLogFrame:RegisterEvent("ADDON_LOADED")
-BuffLogFrame:RegisterEvent("ENCOUNTER_START")
-BuffLogFrame:RegisterEvent("READY_CHECK")
+BuffLogFrame:RegisterEvent("UNIT_HEALTH")
+BuffLogFrame:RegisterEvent("UNIT_POWER")
 BuffLogFrame:RegisterEvent("TAXIMAP_OPENED")
 
 -- REGISTER EVENT LISTENERS
@@ -24,14 +24,19 @@ BuffLogFrame:SetScript("OnEvent", function(self, event, arg1, ...)
 end);
 
 -- COMMAND HANDLER
-function BuffLog:logBuffs(msg)
-    local buffs = BuffLog:getBuffs()
-    BuffLog:saveBuffs(buffs)
-    print("Buffs Logged")
+function BuffLog:slashCommands(msg)
+  command, ... = strsplit(" ", msg, 2)
+  if command == "clear" then
+    BuffLog_SavedBuffs = {}
+    print("BuffLog SavedVariables cleared.")
+  else
+    BuffLog:logBuffs()
+  end
 end
 
 -- EVENT HANDLER
 function BuffLogFrame:onEvent(self, event, arg1, ...)
+    
     if event == "ADDON_LOADED" then
         if arg1 == BuffLog.ADDON_NAME then
             local colorHex = "2979ff"
@@ -39,9 +44,17 @@ function BuffLogFrame:onEvent(self, event, arg1, ...)
         end
     end
 
-    -- AUTOMATICALLY COLLECT BUFFS WHEN A READY CHECK IS PERFORMED
-    if event == "ENCOUNTER_START" or event == "READY_CHECK" then
-        BuffLog:logBuffs(msg)
+    -- TRIGGER ON EVENT THAT FIRES A LOT
+    if event == "UNIT_HEALTH" or event == "UNIT_POWER" then
+      -- ONLY COLLECT BUFFS IF WE HAVNT DONE IT FOR AT LEAST 2 SECONDS
+      if time() - BuffLog.lastTimeLogged <= 2 then return end
+      
+      -- CHECK IF WE'RE IN A RAID INSTANCE
+      local inInstance, instanceType = IsInInstance()
+      if inInstance and instanceType == "raid" then
+        BuffLog:logBuffs()
+        BuffLog.lastTimeLogged = time()
+      end
     end
 
     -- CLEAR SAVED VARIABLES WHENEVER TALKING TO FLIGHTPATH
@@ -56,6 +69,13 @@ function BuffLogFrame:onEvent(self, event, arg1, ...)
 end
 
 -- BUFF LOG FUNCTIONS
+function BuffLog:logBuffs()
+  local buffs = BuffLog:getBuffs()
+  BuffLog:saveBuffs(buffs)
+  print("Buffs Logged")
+end
+
+
 function BuffLog:getBuffs()
     if UnitInRaid("player") then
         return BuffLog:getRaidBuffs()
